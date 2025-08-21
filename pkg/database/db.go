@@ -43,13 +43,13 @@ type DatabaseConfig struct {
 func NewDatabase() (Database, error) {
 	dbOnce.Do(func() {
 		config := DatabaseConfig{
-			Host:     env.GetEnv("DB_HOST", "localhost"),
-			User:     env.GetEnv("DB_USER", "postgres"),
-			Password: env.GetEnv("DB_PASSWORD", "postgres"),
-			DBName:   env.GetEnv("DB_NAME", "noda"),
-			Port:     env.GetEnv("DB_PORT", "5432"),
-			SSLMode:  env.GetEnv("DB_SSLMODE", "disable"),
-			TimeZone: env.GetEnv("DB_TIMEZONE", "Asia/Astana"),
+			Host:     env.GetEnvOrDefault("DB_HOST", "localhost"),
+			User:     env.GetEnvOrDefault("DB_USER", "postgres"),
+			Password: env.GetEnvOrDefault("DB_PASSWORD", "postgres"),
+			DBName:   env.GetEnvOrDefault("DB_NAME", "noda"),
+			Port:     env.GetEnvOrDefault("DB_PORT", "5432"),
+			SSLMode:  env.GetEnvOrDefault("DB_SSLMODE", "disable"),
+			TimeZone: env.GetEnvOrDefault("DB_TIMEZONE", "Asia/Astana"),
 		}
 
 		// По умолчанию используем PostgreSQL
