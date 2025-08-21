@@ -50,9 +50,35 @@ func (m *AuthMiddleware) RequireAuth(c *fiber.Ctx) error {
 	// Сохраняем данные пользователя в контексте для использования в handlers
 	c.Locals("userID", claims.UserID)
 	c.Locals("phone", claims.Phone)
+	c.Locals("role", claims.Role)
 
 	return c.Next()
 }
+
+// RequireRole middleware для проверки роли пользователя
+// Этот middleware должен вызываться ПОСЛЕ RequireAuth
+func (m *AuthMiddleware) RequireRole(requiredRole string) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		// Получаем роль из контекста, которую установил RequireAuth
+		userRole, ok := c.Locals("role").(string)
+		if !ok {
+			// Это может произойти, если RequireAuth не был вызван перед этим middleware
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": "Role not found in context, ensure RequireAuth runs first",
+			})
+		}
+
+		// Проверяем, соответствует ли роль требуемой
+		if userRole != requiredRole {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": "Forbidden: insufficient permissions",
+			})
+		}
+
+		return c.Next()
+	}
+}
+
 
 // OptionalAuth middleware для маршрутов где авторизация опциональна
 func (m *AuthMiddleware) OptionalAuth(c *fiber.Ctx) error {
@@ -64,6 +90,7 @@ func (m *AuthMiddleware) OptionalAuth(c *fiber.Ctx) error {
 			if err == nil {
 				c.Locals("userID", claims.UserID)
 				c.Locals("phone", claims.Phone)
+				c.Locals("role", claims.Role)
 			}
 		}
 	}

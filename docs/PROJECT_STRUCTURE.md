@@ -84,6 +84,11 @@ delivery → usecase → domain ← repository
   HTTP API               PostgreSQL/Redis
 ```
 
+### 4. Прагматичный подход к Clean Architecture
+
+Несмотря на все преимущества, Clean Architecture не является серебряной пулей. Применяйте ее осознанно:
+Главный принцип — **не создавайте лишних слоев абстракции**, если они не решают конкретную проблему сложности.
+
 ## 📦 Слои и их ответственность
 
 ### Domain Layer (Бизнес-логика)
@@ -195,68 +200,3 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
     // Парсинг JSON, вызов usecase, возврат ответа
 }
 ```
-
-## 🚀 Bootstrap (Инициализация)
-
-### main.go структура
-
-```go
-package main
-
-func main() {
-    // 1. Загрузка конфигурации
-    cfg := config.Load()
-
-    // 2. Инициализация внешних зависимостей
-    db := database.NewPostgresConnection(cfg.DatabaseURL)
-    redis := redis.NewClient(cfg.RedisURL)
-
-    // 3. Создание репозиториев
-    userRepo := repository.NewUserRepository(db)
-    authRepo := repository.NewAuthRepository(db)
-    otpRepo := repository.NewOTPRepository(redis)
-
-    // 4. Создание usecase'ов
-    userUseCase := usecase.NewUserUseCase(userRepo)
-    authUseCase := usecase.NewAuthUseCase(authRepo, otpRepo)
-
-    // 5. Создание handlers
-    userHandler := http.NewUserHandler(userUseCase)
-    authHandler := http.NewAuthHandler(authUseCase)
-
-    // 6. Настройка маршрутов
-    router := gin.New()
-    api := router.Group("/api/v1")
-
-    // Публичные роуты
-    api.POST("/auth/request-code", authHandler.RequestCode)
-    api.POST("/applications/submit", userHandler.SubmitApplication)
-
-    // Защищенные роуты
-    protected := api.Group("").Use(middleware.Auth())
-    protected.GET("/profile", userHandler.GetProfile)
-
-    // Запуск сервера
-    router.Run(cfg.Port)
-}
-```
-
-## 📋 Дополнительные рекомендации
-
-### Файлы
-
-- **Маленькие файлы**: < 200 строк
-- **Один пакет = одна ответственность**
-- **Интерфейсы**: Определяйте в том же пакете, где используются
-
-### Директории
-
-- **internal**: Только для этого приложения
-- **pkg**: Могут использовать другие приложения
-- **cmd**: Точки входа, минимальный код
-
-### Зависимости
-
-- **Внедрение зависимостей**: Через конструкторы
-- **Интерфейсы**: В domain/usecase слоях
-- **Реализации**: В repository слое

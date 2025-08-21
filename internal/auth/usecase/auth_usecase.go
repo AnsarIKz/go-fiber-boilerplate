@@ -2,8 +2,10 @@ package usecase
 
 import (
 	"errors"
+	"fmt"
 	"nodabackend/internal/auth/domain"
 	"nodabackend/pkg/jwthelper"
+	"nodabackend/pkg/mailer"
 	"regexp"
 	"strings"
 
@@ -20,13 +22,15 @@ type AuthResponse struct {
 type AuthUseCase struct {
 	userRepo  domain.UserRepository
 	jwtHelper *jwthelper.JWTHelper
+	mailer    mailer.Mailer
 }
 
 // NewAuthUseCase создает новый usecase
-func NewAuthUseCase(repo domain.UserRepository, jwtHelper *jwthelper.JWTHelper) *AuthUseCase {
+func NewAuthUseCase(repo domain.UserRepository, jwtHelper *jwthelper.JWTHelper, mailer mailer.Mailer) *AuthUseCase {
 	return &AuthUseCase{
 		userRepo:  repo,
 		jwtHelper: jwtHelper,
+		mailer:    mailer,
 	}
 }
 
@@ -61,7 +65,7 @@ func (uc *AuthUseCase) RegisterUser(phone, password, name string) (*AuthResponse
 	}
 
 	// Генерируем JWT токен
-	token, err := uc.jwtHelper.GenerateToken(user.ID, user.Phone)
+	token, err := uc.jwtHelper.GenerateToken(user.ID, user.Phone, string(user.Role))
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +99,7 @@ func (uc *AuthUseCase) AuthenticateUser(phone, password string) (*AuthResponse, 
 	}
 
 	// Генерируем JWT токен
-	token, err := uc.jwtHelper.GenerateToken(user.ID, user.Phone)
+	token, err := uc.jwtHelper.GenerateToken(user.ID, user.Phone, string(user.Role))
 	if err != nil {
 		return nil, err
 	}
@@ -160,4 +164,58 @@ func (uc *AuthUseCase) validateLoginData(phone, password string) error {
 	}
 
 	return nil
+}
+
+// SendVerificationEmail отправляет email с кодом подтверждения
+func (uc *AuthUseCase) SendVerificationEmail(email, code string) error {
+	if email == "" {
+		return errors.New("email is required")
+	}
+
+	if code == "" {
+		return errors.New("verification code is required")
+	}
+
+	subject := "Код подтверждения"
+	body := fmt.Sprintf(`
+		<h2>Подтверждение email</h2>
+		<p>Ваш код подтверждения: <strong>%s</strong></p>
+		<p>Введите этот код в приложении для завершения регистрации.</p>
+		<br>
+		<p>Если вы не запрашивали этот код, просто проигнорируйте это письмо.</p>
+	`, code)
+
+	msg := &mailer.EmailMessage{
+		To:      []string{email},
+		Subject: subject,
+		Body:    body,
+		IsHTML:  true,
+	}
+
+	return uc.mailer.SendEmail(msg)
+}
+
+// SendWelcomeEmail отправляет приветственное письмо после успешной регистрации
+func (uc *AuthUseCase) SendWelcomeEmail(email, name string) error {
+	if email == "" {
+		return errors.New("email is required")
+	}
+
+	subject := "Добро пожаловать!"
+	body := fmt.Sprintf(`
+		<h2>Добро пожаловать, %s!</h2>
+		<p>Спасибо за регистрацию в нашем приложении.</p>
+		<p>Теперь вы можете пользоваться всеми нашими сервисами.</p>
+		<br>
+		<p>С уважением,<br>Команда разработчиков</p>
+	`, name)
+
+	msg := &mailer.EmailMessage{
+		To:      []string{email},
+		Subject: subject,
+		Body:    body,
+		IsHTML:  true,
+	}
+
+	return uc.mailer.SendEmail(msg)
 }
