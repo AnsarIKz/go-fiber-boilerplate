@@ -12,7 +12,7 @@ import (
 
 // RegisterRoutes настраивает маршруты аутентификации и возвращает auth middleware
 func RegisterRoutes(api fiber.Router, db *gorm.DB, jwtHelper *jwthelper.JWTHelper) *middleware.AuthMiddleware {
-	authRepo := repository.NewAuthRepository(db)
+	authRepo := repository.NewUserRepository(db)
 	authUseCase := usecase.NewAuthUseCase(authRepo, jwtHelper)
 	authHandler := NewAuthHandler(authUseCase)
 	authMiddleware := middleware.NewAuthMiddleware(jwtHelper)

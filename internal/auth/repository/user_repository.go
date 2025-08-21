@@ -6,23 +6,24 @@ import (
 	"gorm.io/gorm"
 )
 
-// AuthRepository реализация AuthRepository для PostgreSQL
-type AuthRepository struct {
+// UserRepository реализация UserRepository для PostgreSQL
+type UserRepository struct {
 	db *gorm.DB
 }
 
-// NewAuthRepository создает новый репозиторий с dependency injection
-func NewAuthRepository(db *gorm.DB) *AuthRepository {
-	return &AuthRepository{db: db}
+
+// NewUserRepository создает новый репозиторий с dependency injection
+func NewUserRepository(db *gorm.DB) *UserRepository {
+	return &UserRepository{db: db}
 }
 
 // CreateUser создает нового пользователя
-func (r *AuthRepository) CreateUser(user *domain.User) error {
+func (r *UserRepository) CreateUser(user *domain.User) error {
 	return r.db.Create(user).Error
 }
 
 // GetUserByPhone получает пользователя по телефону
-func (r *AuthRepository) GetUserByPhone(phone string) (*domain.User, error) {
+func (r *UserRepository) GetUserByPhone(phone string) (*domain.User, error) {
 	var user domain.User
 	err := r.db.Where("phone = ?", phone).First(&user).Error
 	if err != nil {
@@ -32,7 +33,7 @@ func (r *AuthRepository) GetUserByPhone(phone string) (*domain.User, error) {
 }
 
 // GetUserByID получает пользователя по ID
-func (r *AuthRepository) GetUserByID(id uint) (*domain.User, error) {
+func (r *UserRepository) GetUserByID(id uint) (*domain.User, error) {
 	var user domain.User
 	err := r.db.First(&user, id).Error
 	if err != nil {

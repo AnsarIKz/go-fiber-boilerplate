@@ -12,8 +12,8 @@ type User struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-// AuthRepository интерфейс для работы с аутентификацией
-type AuthRepository interface {
+// UserRepository интерфейс для работы с пользователями
+type UserRepository interface {
 	CreateUser(user *User) error
 	GetUserByPhone(phone string) (*User, error)
 	GetUserByID(id uint) (*User, error)

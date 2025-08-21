@@ -78,3 +78,4 @@ func (j *JWTHelper) RefreshToken(tokenString string) (string, error) {
 	// Создаем новый токен с теми же данными пользователя
 	return j.GenerateToken(claims.UserID, claims.Phone)
 }
+

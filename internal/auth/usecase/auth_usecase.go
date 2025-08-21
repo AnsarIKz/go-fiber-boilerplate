@@ -18,14 +18,14 @@ type AuthResponse struct {
 
 // AuthUseCase бизнес-логика аутентификации
 type AuthUseCase struct {
-	authRepo  domain.AuthRepository
+	userRepo  domain.UserRepository
 	jwtHelper *jwthelper.JWTHelper
 }
 
 // NewAuthUseCase создает новый usecase
-func NewAuthUseCase(repo domain.AuthRepository, jwtHelper *jwthelper.JWTHelper) *AuthUseCase {
+func NewAuthUseCase(repo domain.UserRepository, jwtHelper *jwthelper.JWTHelper) *AuthUseCase {
 	return &AuthUseCase{
-		authRepo:  repo,
+		userRepo:  repo,
 		jwtHelper: jwtHelper,
 	}
 }
@@ -38,7 +38,7 @@ func (uc *AuthUseCase) RegisterUser(phone, password, name string) (*AuthResponse
 	}
 
 	// Проверяем, существует ли пользователь
-	existingUser, _ := uc.authRepo.GetUserByPhone(phone)
+	existingUser, _ := uc.userRepo.GetUserByPhone(phone)
 	if existingUser != nil {
 		return nil, errors.New("user already exists")
 	}
@@ -56,7 +56,7 @@ func (uc *AuthUseCase) RegisterUser(phone, password, name string) (*AuthResponse
 		Name:     name,
 	}
 
-	if err := uc.authRepo.CreateUser(user); err != nil {
+	if err := uc.userRepo.CreateUser(user); err != nil {
 		return nil, err
 	}
 
@@ -83,7 +83,7 @@ func (uc *AuthUseCase) AuthenticateUser(phone, password string) (*AuthResponse, 
 	}
 
 	// Получаем пользователя
-	user, err := uc.authRepo.GetUserByPhone(phone)
+	user, err := uc.userRepo.GetUserByPhone(phone)
 	if err != nil {
 		return nil, errors.New("invalid credentials")
 	}
@@ -111,7 +111,7 @@ func (uc *AuthUseCase) AuthenticateUser(phone, password string) (*AuthResponse, 
 
 // GetUserByID получает пользователя по ID (для использования в middleware)
 func (uc *AuthUseCase) GetUserByID(userID uint) (*domain.User, error) {
-	user, err := uc.authRepo.GetUserByID(userID)
+	user, err := uc.userRepo.GetUserByID(userID)
 	if err != nil {
 		return nil, errors.New("user not found")
 	}

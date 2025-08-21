@@ -69,3 +69,4 @@ func (m *AuthMiddleware) OptionalAuth(c *fiber.Ctx) error {
 	}
 	return c.Next()
 }
+
