@@ -15,26 +15,11 @@ var (
 
 // Database интерфейс для работы с базой данных
 type Database interface {
-	// GetDB возвращает экземпляр *gorm.DB для использования в репозиториях
 	GetDB() *gorm.DB
-	
-	// Close закрывает соединение с базой данных
 	Close() error
-	
-	// Ping проверяет соединение с базой данных
 	Ping() error
 }
 
-// DatabaseConfig содержит конфигурацию для подключения к базе данных
-type DatabaseConfig struct {
-	Host     string
-	User     string
-	Password string
-	DBName   string
-	Port     string
-	SSLMode  string
-	TimeZone string
-}
 
 
 
@@ -42,7 +27,7 @@ type DatabaseConfig struct {
 // Конфигурация считывается из переменных окружения или используются значения по умолчанию
 func NewDatabase() (Database, error) {
 	dbOnce.Do(func() {
-		config := DatabaseConfig{
+		config := PostgresConfig{
 			Host:     env.GetEnvOrDefault("DB_HOST", "localhost"),
 			User:     env.GetEnvOrDefault("DB_USER", "postgres"),
 			Password: env.GetEnvOrDefault("DB_PASSWORD", "postgres"),
@@ -52,7 +37,6 @@ func NewDatabase() (Database, error) {
 			TimeZone: env.GetEnvOrDefault("DB_TIMEZONE", "Asia/Astana"),
 		}
 
-		// По умолчанию используем PostgreSQL
 		db, errDB = NewPostgresDatabase(config)
 	})
 

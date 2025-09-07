@@ -5,6 +5,7 @@ go 1.24.5
 require (
 	github.com/gofiber/fiber/v2 v2.52.9
 	github.com/golang-jwt/jwt/v5 v5.2.2
+	github.com/redis/go-redis/v9 v9.12.1
 	github.com/twilio/twilio-go v1.27.1
 	golang.org/x/crypto v0.31.0
 	gorm.io/driver/postgres v1.6.0
@@ -13,6 +14,8 @@ require (
 
 require (
 	github.com/andybalholm/brotli v1.1.0 // indirect
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect

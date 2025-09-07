@@ -8,65 +8,58 @@ import (
 	"gorm.io/gorm"
 )
 
-// PostgresDatabase реализует интерфейс Database для PostgreSQL
-type PostgresDatabase struct {
+// PostgresConfig содержит конфигурацию для подключения к PostgreSQL
+type PostgresConfig struct {
+	Host     string
+	User     string
+	Password string
+	DBName   string
+	Port     string
+	SSLMode  string
+	TimeZone string
+}
+
+// postgresDatabase реализует интерфейс Database для PostgreSQL
+type postgresDatabase struct {
 	db *gorm.DB
 }
 
-// NewPostgresDatabase создает новое подключение к PostgreSQL базе данных
-func NewPostgresDatabase(config DatabaseConfig) (Database, error) {
+// NewPostgresDatabase создает новое подключение к PostgreSQL
+func NewPostgresDatabase(config PostgresConfig) (Database, error) {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s",
-		config.Host,
-		config.User,
-		config.Password,
-		config.DBName,
-		config.Port,
-		config.SSLMode,
-		config.TimeZone,
-	)
+		config.Host, config.User, config.Password, config.DBName, config.Port, config.SSLMode, config.TimeZone)
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	gormDB, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	log.Println("Successfully created new PostgreSQL database connection!")
-	
-	return &PostgresDatabase{
-		db: db,
+	log.Println("[DB] Successfully connected to PostgreSQL")
+
+	return &postgresDatabase{
+		db: gormDB,
 	}, nil
 }
 
 // GetDB возвращает экземпляр *gorm.DB для использования в репозиториях
-func (p *PostgresDatabase) GetDB() *gorm.DB {
+func (p *postgresDatabase) GetDB() *gorm.DB {
 	return p.db
 }
 
 // Close закрывает соединение с базой данных
-func (p *PostgresDatabase) Close() error {
+func (p *postgresDatabase) Close() error {
 	sqlDB, err := p.db.DB()
 	if err != nil {
 		return fmt.Errorf("failed to get underlying sql.DB: %w", err)
 	}
-	
-	if err := sqlDB.Close(); err != nil {
-		return fmt.Errorf("failed to close database connection: %w", err)
-	}
-	
-	log.Println("Database connection closed successfully")
-	return nil
+	return sqlDB.Close()
 }
 
 // Ping проверяет соединение с базой данных
-func (p *PostgresDatabase) Ping() error {
+func (p *postgresDatabase) Ping() error {
 	sqlDB, err := p.db.DB()
 	if err != nil {
 		return fmt.Errorf("failed to get underlying sql.DB: %w", err)
 	}
-	
-	if err := sqlDB.Ping(); err != nil {
-		return fmt.Errorf("failed to ping database: %w", err)
-	}
-	
-	return nil
+	return sqlDB.Ping()
 }

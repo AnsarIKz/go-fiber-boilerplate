@@ -6,21 +6,29 @@ import (
 	"nodabackend/pkg/database"
 	"nodabackend/pkg/jwthelper"
 
+	// "nodabackend/pkg/redis"
+
 	"github.com/gofiber/fiber/v2"
 )
 
 func main() {
-	// 1. Подключение к базе данных
-	databaseInstance, err := database.NewDatabase()
+	// 1. Подключение к базе данных (PostgreSQL)
+	dbInstance, err := database.NewDatabase()
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
-	db := databaseInstance.GetDB()
+	db := dbInstance.GetDB()
 
-	// 2. Инициализация JWT helper
+	// 2. Подключение к Redis
+	// redisClient, err := redis.NewClient()
+	// if err != nil {
+	// 	log.Fatal("Failed to connect to Redis:", err)
+	// }
+
+	// 3. Инициализация JWT helper
 	jwtHelper := jwthelper.NewJWTHelper()
 
-	// 3. Настройка HTTP сервера
+	// 4. Настройка HTTP сервера
 	app := fiber.New()
 
 	// Public routes
@@ -35,6 +43,7 @@ func main() {
 	api := app.Group("/api/v1")
 
 	// Auth routes
+	// TODO: Передать redisClient в RegisterRoutes, когда он понадобится
 	authMiddleware := http.RegisterRoutes(api, db, jwtHelper)
 
 	// Example protected route
